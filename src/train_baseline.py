@@ -60,23 +60,51 @@ def main() -> None:
     ap.add_argument("--weights", choices=["none", "inv", "sqrt"], default="none")
     ap.add_argument("--augment", action="store_true",
                     help="dihedral (rot90/flip) augmentation on the training set")
+    ap.add_argument("--init-encoder", default=None,
+                    help="path to pretrained encoder weights (from train_ae.py)")
+    ap.add_argument("--label-frac", type=float, default=1.0,
+                    help="stratified fraction of training labels to keep (min 2/class)")
+    ap.add_argument("--seed", type=int, default=SEED,
+                    help="seed for both the label subsample and training")
+    ap.add_argument("--epochs", type=int, default=EPOCHS,
+                    help="small label budgets need more epochs for a comparable step count")
     ap.add_argument("--run", default="baseline",
                     help="name for output files: results/<run>.pt etc.")
     args = ap.parse_args()
 
-    torch.manual_seed(SEED)
+    torch.manual_seed(args.seed)
     device = "cuda"
 
     train_ds = WaferDataset("train", augment=args.augment)
     val_ds = WaferDataset("val")
+
+    if args.label_frac < 1.0:
+        # Stratified subsample: pretend only this fraction was ever labelled.
+        # Floor of 2 per class so no class vanishes outright at small budgets.
+        rng = np.random.default_rng(args.seed)
+        t = train_ds.targets.numpy()
+        keep = np.concatenate([
+            rng.choice(idx, size=min(max(2, round(len(idx) * args.label_frac)),
+                                     len(idx)), replace=False)
+            for c in range(len(CLASSES))
+            if len(idx := np.where(t == c)[0])
+        ])
+        train_ds.maps = train_ds.maps[keep]
+        train_ds.heights = train_ds.heights[keep]
+        train_ds.widths = train_ds.widths[keep]
+        train_ds.targets = train_ds.targets[keep]
+        print(f"label budget {args.label_frac:.0%}: {len(keep):,} training wafers kept")
     train_loader = DataLoader(train_ds, batch_size=BATCH, shuffle=True,
                               num_workers=8, pin_memory=True, persistent_workers=True)
     val_loader = DataLoader(val_ds, batch_size=512, num_workers=4,
                             pin_memory=True, persistent_workers=True)
 
     model = WaferCNN().to(device)
+    if args.init_encoder:
+        model.features.load_state_dict(torch.load(args.init_encoder, weights_only=True))
+        print(f"encoder initialised from {args.init_encoder}")
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-4)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=EPOCHS)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
     w = class_weights(train_ds.targets, args.weights)
     if w is not None:
         print("class weights: " + ", ".join(
@@ -84,7 +112,7 @@ def main() -> None:
     loss_fn = nn.CrossEntropyLoss(weight=None if w is None else w.to(device))
 
     best_f1 = -1.0
-    for epoch in range(1, EPOCHS + 1):
+    for epoch in range(1, args.epochs + 1):
         model.train()
         t0, running = time.time(), 0.0
         for x, y in train_loader:
@@ -124,6 +152,9 @@ def main() -> None:
     np.savetxt(OUT / f"{args.run}_confusion.csv", cm, fmt="%d", delimiter=",",
                header=",".join(CLASSES))
     print(f"\nconfusion matrix saved to {OUT / f'{args.run}_confusion.csv'}")
+    print(f"RESULT run={args.run} frac={args.label_frac} seed={args.seed} "
+          f"init={'ae' if args.init_encoder else 'scratch'} "
+          f"macro_f1={f1_score(targets, preds, average='macro'):.4f}")
 
 
 if __name__ == "__main__":
