@@ -1,0 +1,12 @@
+# Data: 2GB, re-downloadable (see src/prepare_wm811k.py docstring)
+data/
+
+# Trained model weights: regenerable from the commands in results/experiments.md
+results/*.pt
+
+# Virtual environment: regenerable with `uv sync`
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
