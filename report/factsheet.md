@@ -98,3 +98,26 @@ Batching is where the optimisation value lives; edge → 0 as budget loosens.
 4. Small-n classes carry wide CIs (val: Near-full 21, Donut 79).
 5. The number "47" used earlier in conversation was an illustrative placeholder,
    NOT a computed result — never cite it.
+
+## FINAL TEST RESULTS (unsealed once, 2026-08-26 — these are the definitive numbers)
+
+Model: weighted_sqrt only. Test split: 25,801 wafers, true defect share 15.104%.
+
+| Fact | Test | (Val, for reference) |
+|---|---|---|
+| macro-F1 | **0.8621** | 0.8760 |
+| accuracy | 0.9740 | 0.9771 |
+| Triage @ C_miss=100: auto-clear | **62.7%** | 63.3% |
+| Triage @ C_miss=100: missed among cleared | **7 (0.043%)** | 0 |
+| Triage @ C_miss=100: cost vs all-review | **−28.5%** | −30.4% |
+| Triage @ C_miss=300: missed | 1 (0.012%) | 0 |
+| Triage @ C_miss=1000: missed | 0 | 0 |
+
+Interpretation (report verbatim): the −1.4pp macro-F1 gap is the price of model
+selection on val (two-layer selection-contamination logic). The val "zero misses"
+did NOT replicate: test observed 0.043%, exceeding val's rule-of-three 95% upper
+bound (0.018%) by ~2.4× (Poisson P(X≥7 | bound) ≈ 3%) — consistent with mild val
+contamination of the policy thresholds, exactly the risk pre-declared in the
+reviewer-criticism note. The economic conclusion is robust; the zero-miss claim
+must be stated as "zero at the most conservative setting; ~0.04% at C_miss=100."
+Per-class test table in results/final_test_confusion.csv.
