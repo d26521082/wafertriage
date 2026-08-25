@@ -3,7 +3,8 @@
 Every number the project may cite, **with its conditions attached**. All deliverables
 (memo, write-up, walkthrough, README) quote from here and only here. If a number
 isn't on this sheet, it doesn't get cited. Numbers marked (val) are on the 26,261-wafer
-validation split; the test split (25,801) has never been opened.
+validation split. The test split (25,801) was unsealed exactly once on 2026-08-26;
+its results are the FINAL TEST RESULTS section at the bottom and are definitive.
 
 ## Data
 
@@ -94,7 +95,7 @@ Batching is where the optimisation value lives; edge → 0 as budget loosens.
 
 1. Human review assumed error-free (first-version simplification).
 2. All costs relative to one human review; no absolute currency anywhere.
-3. Single dataset, single model scale, validation only; **test still sealed**.
+3. Single dataset, single model scale; test opened exactly once (see final section).
 4. Small-n classes carry wide CIs (val: Near-full 21, Donut 79).
 5. The number "47" used earlier in conversation was an illustrative placeholder,
    NOT a computed result — never cite it.

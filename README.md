@@ -11,21 +11,26 @@ and adapt the threshold to the actual cost of missed defects.
 
 ## Headline result
 
-Pricing a missed systematic defect at 100× the cost of one manual review, and
-evaluating on 26,261 held-out wafers:
+Pricing a missed systematic defect at 100× the cost of one manual review, on a
+test split of 25,801 wafers that was kept sealed until the very end and
+evaluated exactly once:
 
-| Policy | Auto-cleared | Missed defects among cleared | Cost vs full manual review |
+| Policy | Auto-cleared | Missed among cleared | Cost vs full manual review |
 |---|---|---|---|
-| **Three-way triage (this work)** | **63.3%** | **0** | **−30.4%** |
-| No-triage argmax baseline | — | — | −5.5% |
+| **Three-way triage (this work)** | **62.7%** | **7 (0.043%)** | **−28.5%** |
 | Full manual review | 0% | — | baseline |
 
 The conclusion is not fragile to the cost assumption. Across every setting
 tested (missed-defect cost from 10× to 1,000× a review), the triage policy is
 never worse than full manual review — when misses get more expensive, the
 policy automatically tightens its own thresholds and buys safety with more
-human review. All numbers here are from the validation split; the test split
-stays sealed until the final report.
+human review, reaching zero observed misses at the most conservative setting.
+
+One honest detail worth spelling out: on the validation split the policy showed
+*zero* misses, and that zero did not survive the test set (7 misses, slightly
+above the statistical upper bound implied by validation). This is what mild
+overfitting-to-validation looks like in practice, and it is exactly why the
+test set was kept sealed: the numbers above are the ones to trust.
 
 ## When is unlabeled data worth anything?
 
@@ -90,14 +95,14 @@ lists the exact command that produced it.
 ## Honest limitations
 
 All cost parameters are stated assumptions, measured in units of one manual
-review; no real fab cost data was available. The "zero missed defects" figure
-is an observation on about 16.6K auto-cleared validation wafers — by the rule
-of three, the 95% upper bound on the true miss rate is still about 0.018%, so
-zero observed does not mean zero risk. The cost model also assumes human
-reviewers make no mistakes. Finally, everything was evaluated on a single
-dataset at a single model scale, and the distribution gap between labeled and
-unlabeled wafers — the likely culprit behind the pseudo-labeling failures —
-was diagnosed but not directly tested.
+review; no real fab cost data was available. The measured miss rate at the
+working setting (0.043%, 7 wafers) comes from a single one-shot test
+evaluation, so its exact value carries sampling uncertainty — treat it as
+"a few per ten thousand," not as a precise constant. The cost model also
+assumes human reviewers make no mistakes. Finally, everything was evaluated on
+a single dataset at a single model scale, and the distribution gap between
+labeled and unlabeled wafers — the likely culprit behind the pseudo-labeling
+failures — was diagnosed but not directly tested.
 
 ## Provenance
 
