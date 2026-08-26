@@ -76,6 +76,7 @@ used throughout.
 | `src/allocate.py` | Which wafers to review when reviewer time is limited (a small MIP) |
 | `results/experiments.md` | Every run, with its full reproduction command |
 | `report/factsheet.md` | Single source of truth for every number cited anywhere |
+| `report/writeup.md` | Two-page technical report — the full story, final test numbers included |
 | `report/memo.md` | One-page pilot memo for a non-technical decision-maker (Chinese) |
 
 ## Quickstart
